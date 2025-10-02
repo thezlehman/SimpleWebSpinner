@@ -33,8 +33,8 @@ A fun and interactive spinning wheel application for making random selections. P
 
 1. Clone this repository:
 ```bash
-git clone https://github.com/thezlehman/spinner.git
-cd spinner
+git clone https://github.com/thezlehman/simplewebspinner.git
+cd simplewebspinner
 ```
 
 2. Open `index.html` in your web browser - that's it! No build process required.
