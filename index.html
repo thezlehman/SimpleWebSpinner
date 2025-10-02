@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spinny McSpinface's Decision Maker 3000</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Spinny McSpinface's Decision Maker 3000</h1>
+        </header>
+
+        <main>
+            <div class="wheel-section">
+                <canvas id="wheel" width="500" height="500"></canvas>
+                <div class="pointer"></div>
+                <button id="spinBtn" class="spin-button">SPIN</button>
+            </div>
+
+            <div class="controls">
+                <div class="input-section">
+                    <h2>Enter Names</h2>
+                    <textarea id="namesInput" placeholder="Enter names (one per line)&#10;Alice&#10;Bob&#10;Charlie&#10;David&#10;Emma"></textarea>
+                    <button id="updateBtn">Update Wheel</button>
+
+                    <div class="file-buttons">
+                        <button id="saveBtn" class="file-btn">Save Wheel</button>
+                        <label for="loadFile" class="file-btn">Load Wheel</label>
+                        <input type="file" id="loadFile" accept=".zachscoolformat" style="display: none;">
+                    </div>
+                </div>
+
+                <div class="options-section">
+                    <h2 class="options-header" id="optionsToggle">
+                        Options
+                        <span class="toggle-icon">▼</span>
+                    </h2>
+                    <div class="options-content">
+                    <div class="tabs">
+                        <button class="tab-button active" data-tab="during-spin">During spin</button>
+                        <button class="tab-button" data-tab="after-spin">After spin</button>
+                        <button class="tab-button" data-tab="appearance">Appearance</button>
+                    </div>
+
+                    <div class="tab-content active" id="during-spin">
+                        <div class="option-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="displayDuplicates" checked>
+                                Display duplicates
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="spinSlowly">
+                                Spin slowly
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="showTitle" checked>
+                                Show title
+                            </label>
+                        </div>
+
+                        <hr>
+
+                        <div class="slider-group">
+                            <label>Spin time (seconds)</label>
+                            <input type="range" id="spinDuration" min="1" max="60" value="10" step="1">
+                            <div class="slider-value"><span id="spinDurationValue">10</span>s</div>
+                        </div>
+
+                        <hr>
+
+                        <div class="slider-group">
+                            <label><strong>Max number of names visible on wheel</strong></label>
+                            <small>All names in the text-box have the same chance of winning, regardless of this value.</small>
+                            <input type="range" id="maxNames" min="4" max="1000" value="1000" step="1">
+                            <div class="slider-value"><span id="maxNamesValue">1000</span></div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="after-spin">
+                        <div class="option-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="removeWinner">
+                                Remove winner after spin
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="playSound" checked>
+                                Play sound after winner selected
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="confetti" checked>
+                                Show confetti
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="appearance">
+                        <div class="option-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="darkMode">
+                                Dark mode
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="showBorders" checked>
+                                Show segment borders
+                            </label>
+                        </div>
+
+                        <hr>
+
+                        <div class="input-group">
+                            <label>Wheel title</label>
+                            <input type="text" id="wheelTitle" placeholder="Enter wheel title...">
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            Built by Zachary Lehman
+            <a href="https://github.com/thezlehman" target="_blank" rel="noopener noreferrer">
+                <svg height="20" width="20" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+                </svg>
+            </a>
+        </footer>
+
+        <div id="winnerModal" class="modal">
+            <div class="modal-content">
+                <h2>Winner!</h2>
+                <p id="winnerName"></p>
+                <button id="closeModal">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
