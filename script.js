@@ -2,8 +2,14 @@ class WheelOfNames {
     constructor() {
         this.canvas = document.getElementById('wheel');
         this.ctx = this.canvas.getContext('2d');
-        this.names = ['Alice', 'Bob', 'Charlie', 'David', 'Emma'];
-        this.colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'];
+        this.entries = [
+            { name: 'Alice', weight: 1, color: '#FF6B6B', image: null },
+            { name: 'Bob', weight: 1, color: '#4ECDC4', image: null },
+            { name: 'Charlie', weight: 1, color: '#45B7D1', image: null },
+            { name: 'David', weight: 1, color: '#FFA07A', image: null },
+            { name: 'Emma', weight: 1, color: '#98D8C8', image: null }
+        ];
+        this.defaultColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'];
         this.currentRotation = 0;
         this.isSpinning = false;
         this.spinStartTime = null;
@@ -77,22 +83,214 @@ class WheelOfNames {
             icon.classList.toggle('collapsed');
         });
 
+        // Advanced settings toggle
+        document.getElementById('advancedBtn').addEventListener('click', () => {
+            const advancedSettings = document.getElementById('advancedSettings');
+            advancedSettings.classList.toggle('show');
+            this.updateAdvancedSettings();
+        });
+
         // Load initial names from textarea
-        document.getElementById('namesInput').value = this.names.join('\n');
+        document.getElementById('namesInput').value = this.entries.map(e => e.name).join('\n');
+    }
+
+    updateAdvancedSettings() {
+        const container = document.getElementById('entryCustomizer');
+        container.innerHTML = '';
+
+        this.entries.forEach((entry, index) => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'entry-row';
+            itemDiv.innerHTML = `
+                <div class="entry-main">
+                    <input type="text" class="entry-name-input" value="${entry.name}" data-index="${index}">
+                    <div class="entry-actions">
+                        <button class="action-btn color-btn" data-index="${index}" style="background: ${entry.color};" title="Change color">
+                            <span style="color: white; text-shadow: 0 0 2px black;">●</span>
+                        </button>
+                        <button class="action-btn image-btn" data-index="${index}" title="Add image">📷</button>
+                        <button class="action-btn weight-btn" data-index="${index}" title="Adjust weight">⚖️</button>
+                        <button class="action-btn delete-btn" data-index="${index}" title="Delete">✕</button>
+                    </div>
+                </div>
+                <input type="file" accept="image/*" class="hidden-file-input" data-index="${index}" style="display: none;">
+                <input type="color" value="${entry.color}" class="hidden-color-input" data-index="${index}" style="display: none;">
+            `;
+            container.appendChild(itemDiv);
+        });
+
+        // Name input changes
+        document.querySelectorAll('.entry-name-input').forEach(input => {
+            input.addEventListener('change', (e) => {
+                const index = parseInt(e.target.dataset.index);
+                this.entries[index].name = e.target.value;
+                this.drawWheel();
+            });
+        });
+
+        // Color button clicks
+        document.querySelectorAll('.color-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const index = parseInt(e.target.dataset.index || e.currentTarget.dataset.index);
+                const colorInput = container.querySelectorAll('.hidden-color-input')[index];
+                colorInput.click();
+            });
+        });
+
+        // Hidden color inputs
+        document.querySelectorAll('.hidden-color-input').forEach(input => {
+            input.addEventListener('change', (e) => {
+                const index = parseInt(e.target.dataset.index);
+                this.entries[index].color = e.target.value;
+                this.updateAdvancedSettings();
+                this.drawWheel();
+            });
+        });
+
+        // Image button clicks
+        document.querySelectorAll('.image-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const index = parseInt(e.target.dataset.index);
+                const fileInput = container.querySelectorAll('.hidden-file-input')[index];
+                fileInput.click();
+            });
+        });
+
+        // Hidden file inputs
+        document.querySelectorAll('.hidden-file-input').forEach(input => {
+            input.addEventListener('change', (e) => {
+                const index = parseInt(e.target.dataset.index);
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            this.entries[index].image = img;
+                            this.drawWheel();
+                        };
+                        img.src = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+
+        // Weight button clicks - open modal
+        document.querySelectorAll('.weight-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const index = parseInt(e.target.dataset.index);
+                this.openWeightModal(index);
+            });
+        });
+
+        // Delete button clicks
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const index = parseInt(e.target.dataset.index);
+                if (confirm(`Delete "${this.entries[index].name}"?`)) {
+                    this.entries.splice(index, 1);
+                    document.getElementById('namesInput').value = this.entries.map(e => e.name).join('\n');
+                    this.updateAdvancedSettings();
+                    this.drawWheel();
+                }
+            });
+        });
+    }
+
+    openWeightModal(index) {
+        const entry = this.entries[index];
+        const totalWeight = this.entries.reduce((sum, e) => sum + e.weight, 0);
+        const percentage = ((entry.weight / totalWeight) * 100).toFixed(1);
+
+        // Create modal
+        const modal = document.createElement('div');
+        modal.className = 'weight-modal';
+        modal.innerHTML = `
+            <div class="weight-modal-content">
+                <h3>Adjust Weight: ${entry.name}</h3>
+                <p class="current-percent">${percentage}% of wheel</p>
+                <div class="weight-controls">
+                    <label>Weight:</label>
+                    <input type="range" id="modalWeightSlider" min="0.1" max="100" step="0.1" value="${entry.weight}">
+                    <input type="number" id="modalWeightInput" min="0.1" max="100" step="0.1" value="${entry.weight}">
+                </div>
+                <div class="modal-actions">
+                    <button id="cancelWeight" class="modal-btn cancel-btn">Cancel</button>
+                    <button id="applyWeight" class="modal-btn apply-btn">Apply</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        const slider = modal.querySelector('#modalWeightSlider');
+        const input = modal.querySelector('#modalWeightInput');
+        const percentDisplay = modal.querySelector('.current-percent');
+
+        // Sync slider and input
+        slider.addEventListener('input', () => {
+            input.value = slider.value;
+            const newTotal = totalWeight - entry.weight + parseFloat(slider.value);
+            const newPercent = ((parseFloat(slider.value) / newTotal) * 100).toFixed(1);
+            percentDisplay.textContent = `${newPercent}% of wheel`;
+        });
+
+        input.addEventListener('input', () => {
+            slider.value = input.value;
+            const newTotal = totalWeight - entry.weight + parseFloat(input.value);
+            const newPercent = ((parseFloat(input.value) / newTotal) * 100).toFixed(1);
+            percentDisplay.textContent = `${newPercent}% of wheel`;
+        });
+
+        // Cancel button
+        modal.querySelector('#cancelWeight').addEventListener('click', () => {
+            modal.remove();
+        });
+
+        // Apply button
+        modal.querySelector('#applyWeight').addEventListener('click', () => {
+            this.entries[index].weight = parseFloat(input.value);
+            modal.remove();
+            this.updateAdvancedSettings();
+            this.drawWheel();
+        });
+
+        // Click outside to close
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
     }
 
     updateNames() {
         const input = document.getElementById('namesInput').value;
-        const newNames = input.split('\n')
-            .map(name => name.trim())
-            .filter(name => name.length > 0);
+        const lines = input.split('\n')
+            .map(line => line.trim())
+            .filter(line => line.length > 0);
 
-        if (newNames.length === 0) {
+        if (lines.length === 0) {
             alert('Please enter at least one name!');
             return;
         }
 
-        this.names = newNames;
+        // Keep existing entries that match, add new ones
+        const newEntries = [];
+        lines.forEach((name, index) => {
+            const existingEntry = this.entries.find(e => e.name === name);
+            if (existingEntry) {
+                newEntries.push(existingEntry);
+            } else {
+                newEntries.push({
+                    name,
+                    weight: 1,
+                    color: this.defaultColors[index % this.defaultColors.length],
+                    image: null
+                });
+            }
+        });
+
+        this.entries = newEntries;
         this.drawWheel();
     }
 
@@ -105,27 +303,30 @@ class WheelOfNames {
 
         // Get max names setting
         const maxNames = parseInt(document.getElementById('maxNames').value);
-        const displayNames = this.names.slice(0, Math.min(this.names.length, maxNames));
+        const displayEntries = this.entries.slice(0, Math.min(this.entries.length, maxNames));
         const showBorders = document.getElementById('showBorders').checked;
+
+        // Calculate total weight
+        const totalWeight = displayEntries.reduce((sum, entry) => sum + entry.weight, 0);
 
         this.ctx.save();
         this.ctx.translate(centerX, centerY);
         this.ctx.rotate(this.currentRotation);
 
-        const anglePerSegment = (2 * Math.PI) / displayNames.length;
         const startOffset = -Math.PI / 2; // Start at top of wheel
+        let currentAngle = startOffset;
 
-        // Draw segments
-        for (let i = 0; i < displayNames.length; i++) {
-            const startAngle = startOffset + (i * anglePerSegment);
-            const endAngle = startAngle + anglePerSegment;
-            const color = this.colors[i % this.colors.length];
+        // Draw segments with weighted sizes
+        for (let i = 0; i < displayEntries.length; i++) {
+            const entry = displayEntries[i];
+            const segmentAngle = (2 * Math.PI) * (entry.weight / totalWeight);
+            const endAngle = currentAngle + segmentAngle;
 
             // Draw segment
             this.ctx.beginPath();
-            this.ctx.fillStyle = color;
+            this.ctx.fillStyle = entry.color;
             this.ctx.moveTo(0, 0);
-            this.ctx.arc(0, 0, radius, startAngle, endAngle);
+            this.ctx.arc(0, 0, radius, currentAngle, endAngle);
             this.ctx.lineTo(0, 0);
             this.ctx.fill();
 
@@ -136,23 +337,33 @@ class WheelOfNames {
                 this.ctx.stroke();
             }
 
-            // Draw text
+            // Draw image if available, otherwise draw text
             this.ctx.save();
-            this.ctx.rotate(startAngle + anglePerSegment / 2);
-            this.ctx.textAlign = 'center';
-            this.ctx.textBaseline = 'middle';
-            this.ctx.fillStyle = '#fff';
-            this.ctx.font = 'bold 18px Arial';
-            this.ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-            this.ctx.shadowBlur = 3;
-            this.ctx.shadowOffsetX = 1;
-            this.ctx.shadowOffsetY = 1;
+            this.ctx.rotate(currentAngle + segmentAngle / 2);
 
-            // Position text
-            const textRadius = radius * 0.7;
-            this.ctx.fillText(displayNames[i], textRadius, 0);
+            if (entry.image) {
+                // Draw image
+                const imgSize = radius * 0.4;
+                const imgRadius = radius * 0.6;
+                this.ctx.drawImage(entry.image, imgRadius - imgSize/2, -imgSize/2, imgSize, imgSize);
+            } else {
+                // Draw text
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+                this.ctx.fillStyle = '#fff';
+                this.ctx.font = 'bold 18px Arial';
+                this.ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                this.ctx.shadowBlur = 3;
+                this.ctx.shadowOffsetX = 1;
+                this.ctx.shadowOffsetY = 1;
+
+                const textRadius = radius * 0.7;
+                this.ctx.fillText(entry.name, textRadius, 0);
+            }
 
             this.ctx.restore();
+
+            currentAngle = endAngle;
         }
 
         // Draw center circle
@@ -178,7 +389,7 @@ class WheelOfNames {
     }
 
     spin() {
-        if (this.isSpinning || this.names.length === 0) return;
+        if (this.isSpinning || this.entries.length === 0) return;
 
         this.isSpinning = true;
         const spinBtn = document.getElementById('spinBtn');
@@ -202,7 +413,7 @@ class WheelOfNames {
         const startTime = Date.now();
 
         let lastSegment = -1;
-        const anglePerSegment = (2 * Math.PI) / this.names.length;
+        const totalWeight = this.entries.reduce((sum, entry) => sum + entry.weight, 0);
 
         const animate = () => {
             const elapsed = Date.now() - startTime;
@@ -217,7 +428,21 @@ class WheelOfNames {
             // Play tick sound when crossing segments (only during first 80% of spin)
             if (progress < 0.8) {
                 const normalizedRotation = ((this.currentRotation % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI);
-                const currentSegment = Math.floor(normalizedRotation / anglePerSegment);
+
+                // Find which segment we're in based on weights
+                const startOffset = -Math.PI / 2;
+                const relativeAngle = ((normalizedRotation - startOffset) % (2 * Math.PI) + (2 * Math.PI)) % (2 * Math.PI);
+                let accumulatedAngle = 0;
+                let currentSegment = 0;
+
+                for (let i = 0; i < this.entries.length; i++) {
+                    const segmentAngle = (2 * Math.PI) * (this.entries[i].weight / totalWeight);
+                    if (relativeAngle >= accumulatedAngle && relativeAngle < accumulatedAngle + segmentAngle) {
+                        currentSegment = i;
+                        break;
+                    }
+                    accumulatedAngle += segmentAngle;
+                }
 
                 if (currentSegment !== lastSegment) {
                     lastSegment = currentSegment;
@@ -244,19 +469,32 @@ class WheelOfNames {
 
     showWinner() {
         // Pointer points at top of wheel (straight up, -90 degrees from right/0 degrees)
-        const anglePerSegment = (2 * Math.PI) / this.names.length;
         const startOffset = -Math.PI / 2; // Where segments start (top of wheel)
 
         // Normalize the current rotation
         const normalizedRotation = ((this.currentRotation % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI);
 
-        // The pointer is at -PI/2 (top), we need to find which segment is there
-        // Account for the wheel's rotation and the start offset
+        // Calculate total weight
+        const totalWeight = this.entries.reduce((sum, entry) => sum + entry.weight, 0);
+
+        // The pointer is at the top, find which weighted segment is there
         const pointerPosition = -Math.PI / 2; // Top of wheel in absolute terms
         const relativeAngle = ((pointerPosition - normalizedRotation - startOffset) % (2 * Math.PI) + (2 * Math.PI)) % (2 * Math.PI);
 
-        const winnerIndex = Math.floor(relativeAngle / anglePerSegment) % this.names.length;
-        const winner = this.names[winnerIndex];
+        // Find which segment this angle falls into
+        let accumulatedAngle = 0;
+        let winnerIndex = 0;
+
+        for (let i = 0; i < this.entries.length; i++) {
+            const segmentAngle = (2 * Math.PI) * (this.entries[i].weight / totalWeight);
+            if (relativeAngle >= accumulatedAngle && relativeAngle < accumulatedAngle + segmentAngle) {
+                winnerIndex = i;
+                break;
+            }
+            accumulatedAngle += segmentAngle;
+        }
+
+        const winner = this.entries[winnerIndex].name;
 
         // Play win sound if enabled
         const playSound = document.getElementById('playSound').checked;
@@ -299,10 +537,12 @@ class WheelOfNames {
 
         // Remove winner if option is checked
         if (document.getElementById('removeWinner').checked) {
-            this.names.splice(winnerIndex, 1);
-            document.getElementById('namesInput').value = this.names.join('\n');
+            this.entries.splice(winnerIndex, 1);
+            document.getElementById('namesInput').value = this.entries.map(e =>
+                e.weight > 1 ? `${e.name}:${e.weight}` : e.name
+            ).join('\n');
 
-            if (this.names.length === 0) {
+            if (this.entries.length === 0) {
                 setTimeout(() => {
                     alert('All names have been selected! Add more names to continue.');
                 }, 500);
@@ -319,7 +559,7 @@ class WheelOfNames {
     saveWheel() {
         // Gather all settings
         const settings = {
-            names: this.names,
+            entries: this.entries,
             displayDuplicates: document.getElementById('displayDuplicates').checked,
             spinSlowly: document.getElementById('spinSlowly').checked,
             showTitle: document.getElementById('showTitle').checked,
@@ -355,11 +595,17 @@ class WheelOfNames {
             try {
                 const settings = JSON.parse(e.target.result);
 
-                // Load names
-                if (settings.names) {
-                    this.names = settings.names;
-                    document.getElementById('namesInput').value = this.names.join('\n');
+                // Load entries (with backwards compatibility for old "names" format)
+                if (settings.entries) {
+                    this.entries = settings.entries;
+                } else if (settings.names) {
+                    // Convert old format to new format
+                    this.entries = settings.names.map(name => ({ name, weight: 1 }));
                 }
+
+                document.getElementById('namesInput').value = this.entries.map(e =>
+                    e.weight > 1 ? `${e.name}:${e.weight}` : e.name
+                ).join('\n');
 
                 // Load settings
                 if (settings.displayDuplicates !== undefined) {
