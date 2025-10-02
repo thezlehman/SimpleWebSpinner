@@ -9,6 +9,96 @@ body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
     padding: 20px;
+    transition: background 0.3s, color 0.3s;
+}
+
+body.dark-mode {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+body.dark-mode .wheel-section,
+body.dark-mode .input-section,
+body.dark-mode .options-section {
+    background: #0f3460;
+    color: #e0e0e0;
+}
+
+body.dark-mode h2,
+body.dark-mode label,
+body.dark-mode .checkbox-label {
+    color: #e0e0e0;
+}
+
+body.dark-mode #namesInput {
+    background: #1a1a2e;
+    color: #e0e0e0;
+    border-color: #533483;
+}
+
+body.dark-mode .options-header:hover {
+    background: #1a1a2e;
+}
+
+body.dark-mode #updateBtn,
+body.dark-mode .file-btn {
+    background: #533483;
+}
+
+body.dark-mode #updateBtn:hover,
+body.dark-mode .file-btn:hover {
+    background: #6a4a8a;
+}
+
+body.dark-mode .tab-button {
+    color: #b0b0b0;
+}
+
+body.dark-mode .tab-button.active {
+    color: #9d84b7;
+    border-bottom-color: #9d84b7;
+}
+
+body.dark-mode .tab-button:hover {
+    color: #9d84b7;
+}
+
+body.dark-mode hr {
+    border-top-color: #533483;
+}
+
+body.dark-mode .input-group input[type="text"] {
+    background: #1a1a2e;
+    color: #e0e0e0;
+    border-color: #533483;
+}
+
+body.dark-mode .slider-group input[type="range"] {
+    background: #1a1a2e;
+}
+
+body.dark-mode .slider-value {
+    color: #9d84b7;
+}
+
+body.dark-mode .modal-content {
+    background: #0f3460;
+    color: #e0e0e0;
+}
+
+body.dark-mode .modal-content h2 {
+    color: #9d84b7;
+}
+
+body.dark-mode #winnerName {
+    color: #e0e0e0;
+}
+
+body.dark-mode #closeModal {
+    background: #533483;
+}
+
+body.dark-mode #closeModal:hover {
+    background: #6a4a8a;
 }
 
 .container {

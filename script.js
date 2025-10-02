@@ -60,6 +60,11 @@ class WheelOfNames {
             this.drawWheel();
         });
 
+        // Dark mode toggle
+        document.getElementById('darkMode').addEventListener('change', (e) => {
+            document.body.classList.toggle('dark-mode', e.target.checked);
+        });
+
         // Save and load buttons
         document.getElementById('saveBtn').addEventListener('click', () => this.saveWheel());
         document.getElementById('loadFile').addEventListener('change', (e) => this.loadWheel(e));
@@ -336,7 +341,7 @@ class WheelOfNames {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'wheel.zachscoolformat';
+        a.download = 'wheel.spinnyboi';
         a.click();
         URL.revokeObjectURL(url);
     }
@@ -385,6 +390,7 @@ class WheelOfNames {
                 }
                 if (settings.darkMode !== undefined) {
                     document.getElementById('darkMode').checked = settings.darkMode;
+                    document.body.classList.toggle('dark-mode', settings.darkMode);
                 }
                 if (settings.showBorders !== undefined) {
                     document.getElementById('showBorders').checked = settings.showBorders;

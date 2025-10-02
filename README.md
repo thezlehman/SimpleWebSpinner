@@ -7,7 +7,7 @@ A fun and interactive spinning wheel application for making random selections. P
 ### Core Functionality
 - **Interactive Wheel**: Click the wheel or hit the SPIN button to spin
 - **Customizable Names**: Add unlimited names (one per line)
-- **Save/Load**: Save your wheel configurations as `.zachscoolformat` files
+- **Save/Load**: Save your wheel configurations as `.spinnyboi` files
 - **Winner Selection**: Visual and audio feedback when a winner is selected
 
 ### During Spin Options
@@ -23,7 +23,7 @@ A fun and interactive spinning wheel application for making random selections. P
 - **Show Confetti**: Celebratory confetti animation on win
 
 ### Appearance Options
-- **Dark Mode**: Toggle dark mode (coming soon)
+- **Dark Mode**: Toggle dark mode for a sleek nighttime experience
 - **Show Borders**: Toggle segment borders on/off
 - **Wheel Title**: Add a custom title to your wheel
 
@@ -50,7 +50,7 @@ cd spinner
 
 ## File Format
 
-The `.zachscoolformat` file is a JSON file containing:
+The `.spinnyboi` file is a JSON file containing:
 - List of names
 - All option settings (checkboxes, sliders)
 - Wheel title
